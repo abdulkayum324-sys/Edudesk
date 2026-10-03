@@ -28,15 +28,25 @@ class SchoolRepository(
     private val feeDao: FeeDao,
     private val staffDao: StaffDao,
     private val examDao: ExamDao,
-    private val attendanceDao: AttendanceDao
+    private val attendanceDao: AttendanceDao,
+    private val schoolDao: com.example.data.local.SchoolDao? = null
 ) {
     constructor(database: SchoolDatabase) : this(
         studentDao = database.studentDao(),
         feeDao = database.feeDao(),
         staffDao = database.staffDao(),
         examDao = database.examDao(),
-        attendanceDao = database.attendanceDao()
+        attendanceDao = database.attendanceDao(),
+        schoolDao = database.schoolDao()
     )
+
+    // --- School Profile ---
+    val schoolProfile: Flow<com.example.data.model.SchoolProfile?> =
+        schoolDao?.getSchoolProfile() ?: kotlinx.coroutines.flow.flowOf(com.example.data.model.SchoolProfile())
+
+    suspend fun updateSchoolProfile(profile: com.example.data.model.SchoolProfile) {
+        schoolDao?.insertOrUpdateSchoolProfile(profile)
+    }
 
     // --- Student Attendance ---
     val allAttendance: Flow<List<StudentAttendance>> = attendanceDao.getAllAttendance()
@@ -274,4 +284,19 @@ class SchoolRepository(
     }
 
     suspend fun deleteLeaveRequest(leave: LeaveRequest) = staffDao.deleteLeaveRequest(leave)
+
+    // --- User Accounts (RBAC) ---
+    val allUserAccounts: Flow<List<com.example.data.model.UserAccount>> =
+        schoolDao?.getAllUserAccounts() ?: kotlinx.coroutines.flow.flowOf(emptyList())
+
+    suspend fun createUserAccount(user: com.example.data.model.UserAccount): Long =
+        schoolDao?.insertUserAccount(user) ?: 0L
+
+    suspend fun updateUserAccount(user: com.example.data.model.UserAccount) {
+        schoolDao?.updateUserAccount(user)
+    }
+
+    suspend fun deleteUserAccount(user: com.example.data.model.UserAccount) {
+        schoolDao?.deleteUserAccount(user)
+    }
 }

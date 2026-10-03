@@ -164,4 +164,30 @@ interface SchoolDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertStudentAttendanceList(records: List<com.example.data.model.StudentAttendance>)
+
+    // --- School Profile ---
+    @Query("SELECT * FROM school_profile WHERE id = 1 LIMIT 1")
+    fun getSchoolProfile(): Flow<com.example.data.model.SchoolProfile?>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertOrUpdateSchoolProfile(profile: com.example.data.model.SchoolProfile)
+
+    // --- User Accounts (RBAC) ---
+    @Query("SELECT * FROM user_accounts ORDER BY id ASC")
+    fun getAllUserAccounts(): Flow<List<com.example.data.model.UserAccount>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUserAccount(user: com.example.data.model.UserAccount): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertUserAccounts(users: List<com.example.data.model.UserAccount>)
+
+    @Update
+    suspend fun updateUserAccount(user: com.example.data.model.UserAccount)
+
+    @Delete
+    suspend fun deleteUserAccount(user: com.example.data.model.UserAccount)
+
+    @Query("SELECT COUNT(*) FROM user_accounts")
+    suspend fun getUserAccountCount(): Int
 }

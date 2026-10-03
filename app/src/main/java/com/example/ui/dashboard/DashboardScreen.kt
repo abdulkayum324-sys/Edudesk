@@ -100,6 +100,7 @@ fun DashboardScreen(
     val allAttendance by viewModel.allAttendance.collectAsState()
     val searchQuery by viewModel.dashboardSearchQuery.collectAsState()
     val searchResults by viewModel.dashboardSearchResults.collectAsState()
+    val schoolProfile by viewModel.schoolProfile.collectAsState()
     val context = LocalContext.current
     var showExportCsvDialog by remember { mutableStateOf(false) }
 
@@ -192,14 +193,14 @@ fun DashboardScreen(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Oakridge Academy Admin",
+                                text = "${schoolProfile.schoolName} Admin",
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = Color.White
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "Academic Session 2025-2026 \u2022 Accounts & ERP",
+                                text = "${schoolProfile.academicSession} \u2022 Accounts & ERP",
                                 fontSize = 12.sp,
                                 color = Color.White.copy(alpha = 0.8f)
                             )

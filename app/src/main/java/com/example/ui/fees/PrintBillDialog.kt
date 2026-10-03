@@ -49,10 +49,12 @@ import com.example.util.PrintManagerHelper
 fun PrintBillDialog(
     student: Student,
     invoice: FeeRecord,
+    schoolName: String = "Oakridge International Academy",
+    schoolAddress: String = "Main Academic Campus, Kathmandu, Nepal",
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
-    val html = PrintManagerHelper.generateBillHtml(student, invoice)
+    val html = PrintManagerHelper.generateBillHtml(student, invoice, schoolName, schoolAddress)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -89,7 +91,7 @@ fun PrintBillDialog(
                     Column(modifier = Modifier.padding(16.dp)) {
                         // Header
                         Text(
-                            text = "OAKRIDGE INTERNATIONAL ACADEMY",
+                            text = schoolName.uppercase(),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = NavyPrimary

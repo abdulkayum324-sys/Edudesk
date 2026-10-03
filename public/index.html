@@ -632,6 +632,11 @@
         .badge-partial, .badge-late { background-color: var(--info-bg); color: var(--info); }
         .badge-pending, .badge-absent { background-color: var(--danger-bg); color: var(--danger); }
         .badge-onleave { background-color: var(--warning-bg); color: var(--warning); }
+        .badge-role-admin { background-color: #EDE9FE; color: #6D28D9; border: 1px solid #DDD6FE; font-weight: 700; }
+        .badge-role-accountant { background-color: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; font-weight: 700; }
+        .badge-role-teacher { background-color: #E0E7FF; color: #4338CA; border: 1px solid #C7D2FE; font-weight: 700; }
+        .badge-role-parent { background-color: #D1FAE5; color: #047857; border: 1px solid #A7F3D0; font-weight: 700; }
+        .badge-disabled { background-color: #F1F5F9; color: #64748B; border: 1px solid #CBD5E1; }
 
         .currency-npr {
             font-family: 'JetBrains Mono', monospace;
@@ -814,6 +819,12 @@
             <div class="nav-item" onclick="switchTab('exports')">
                 <span class="nav-icon">💾</span> CSV Data Export
             </div>
+            <div class="nav-item" id="nav-settings" onclick="switchTab('settings')">
+                <span class="nav-icon">🏫</span> School Settings
+            </div>
+            <div class="nav-item" id="nav-users" onclick="switchTab('users')">
+                <span class="nav-icon">🔐</span> User Management
+            </div>
         </nav>
 
         <div class="sidebar-footer">
@@ -837,6 +848,14 @@
             <div class="header-actions">
                 <div class="currency-tag">
                     <span>🇳🇵</span> <strong>NPR (Rs.)</strong>
+                </div>
+                <div class="user-auth-pill" style="display: flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--border); padding: 4px 10px; border-radius: var(--radius-md); cursor: pointer;" onclick="openLoginModal()" title="Manage authentication & switch user">
+                    <span style="font-size: 16px;">👤</span>
+                    <div>
+                        <div style="font-size: 12px; font-weight: 700; line-height: 1.2;" id="headerUserName">Admin User</div>
+                        <div style="font-size: 10px; line-height: 1;" id="headerUserRole"><span class="status-badge badge-role-admin">ADMIN</span></div>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" style="padding: 2px 8px; font-size: 11px; margin-left: 4px;" onclick="event.stopPropagation(); logoutUser();">Logout</button>
                 </div>
                 <a href="edudesk.apk" download="edudesk.apk" class="btn-apk-top">
                     <span>📱</span> Install Android App
@@ -1115,6 +1134,7 @@
                         <h2>Faculty & Staff Payroll</h2>
                         <p>Teacher allocations, departments, and monthly net pay in Nepali Rupees</p>
                     </div>
+                    <button class="btn btn-primary" onclick="openAddStaffModal()">+ Add Staff Member</button>
                 </div>
 
                 <div class="data-card">
@@ -1130,6 +1150,7 @@
                                 <th>Deductions (-)</th>
                                 <th>Net Pay (Rs.)</th>
                                 <th>Status</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody id="staffTableBody"></tbody>
@@ -1162,6 +1183,151 @@
                         </p>
                         <button class="btn btn-accent" onclick="exportFeesCsv()">Download FeesLedger.csv</button>
                     </div>
+                </div>
+            </section>
+
+            <!-- 8. SCHOOL SETTINGS VIEW -->
+            <section id="view-settings" class="view-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <h2>School Profile & Institution Settings</h2>
+                        <p>Customize school name, address, contact details, currency, and manage multiple school branches</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveActiveSchoolSettings()">💾 Save Profile Changes</button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px;">
+                    <!-- Edit Active School Card -->
+                    <div class="chart-card">
+                        <h3 style="font-size: 16px; margin-bottom: 16px;">🏫 Edit Institution Profile</h3>
+                        <div style="display: flex; flex-direction: column; gap: 14px;">
+                            <div class="form-group">
+                                <label>Institution / School Name *</label>
+                                <input type="text" id="settingSchoolName" class="form-input" placeholder="e.g. Oakridge International Academy">
+                            </div>
+                            <div class="form-group">
+                                <label>Motto / Tagline</label>
+                                <input type="text" id="settingSchoolMotto" class="form-input" placeholder="Excellence in Academic Leadership">
+                            </div>
+                            <div class="form-group">
+                                <label>Campus Address *</label>
+                                <input type="text" id="settingCampusAddress" class="form-input" placeholder="Main Academic Campus, Kathmandu, Nepal">
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Contact Phone</label>
+                                    <input type="text" id="settingSchoolPhone" class="form-input" placeholder="+977-1-4567890">
+                                </div>
+                                <div class="form-group">
+                                    <label>Contact Email</label>
+                                    <input type="text" id="settingSchoolEmail" class="form-input" placeholder="info@school.edu.np">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Academic Session</label>
+                                    <input type="text" id="settingAcademicSession" class="form-input" placeholder="Session 2025-2026">
+                                </div>
+                                <div class="form-group">
+                                    <label>Currency Symbol</label>
+                                    <input type="text" id="settingCurrencySymbol" class="form-input" value="Rs.">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Principal / Headmaster Name</label>
+                                    <input type="text" id="settingPrincipalName" class="form-input" placeholder="Dr. Arthur Pendelton">
+                                </div>
+                                <div class="form-group">
+                                    <label>Affiliation / Registration #</label>
+                                    <input type="text" id="settingAffiliationCode" class="form-input" placeholder="NEB-REG-48201">
+                                </div>
+                            </div>
+                            <button class="btn btn-primary" style="margin-top: 8px;" onclick="saveActiveSchoolSettings()">Save Institution Profile</button>
+                        </div>
+                    </div>
+
+                    <!-- Manage Campuses & Add School Card -->
+                    <div style="display: flex; flex-direction: column; gap: 24px;">
+                        <div class="chart-card">
+                            <h3 style="font-size: 16px; margin-bottom: 12px;">🏢 Registered School Campuses</h3>
+                            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">Switch between campuses or manage multiple institutions:</p>
+                            <div id="schoolsListContainer" style="display: flex; flex-direction: column; gap: 10px;">
+                                <!-- Injected dynamically -->
+                            </div>
+                        </div>
+
+                        <div class="chart-card">
+                            <h3 style="font-size: 16px; margin-bottom: 12px;">➕ Add New School / Branch</h3>
+                            <div style="display: flex; flex-direction: column; gap: 12px;">
+                                <div class="form-group">
+                                    <label>New School Name *</label>
+                                    <input type="text" id="newSchoolName" class="form-input" placeholder="e.g. Himalayan Model Academy">
+                                </div>
+                                <div class="form-group">
+                                    <label>Campus Location / Address *</label>
+                                    <input type="text" id="newSchoolAddress" class="form-input" placeholder="Pokhara, Nepal">
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Phone</label>
+                                        <input type="text" id="newSchoolPhone" class="form-input" placeholder="+977-61-XXXXXX">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Principal Name</label>
+                                        <input type="text" id="newSchoolPrincipal" class="form-input" placeholder="Principal Name">
+                                    </div>
+                                </div>
+                                <button class="btn btn-accent" onclick="addNewSchoolBranch()">+ Add School Branch</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 9. USER MANAGEMENT & RBAC VIEW -->
+            <section id="view-users" class="view-section">
+                <div class="section-header">
+                    <div class="section-title">
+                        <h2>Multi-Tenant User Management & Access Control</h2>
+                        <p>Create and govern unique administrator, accountant, faculty, and viewer accounts with role-based permissions</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="openAddUserModal()">+ Create User Credential</button>
+                </div>
+
+                <div class="data-card">
+                    <div class="data-toolbar">
+                        <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+                            <input type="text" id="userSearchInput" class="filter-select" placeholder="Search by name or username..." oninput="renderUsersTable()" style="min-width: 220px;">
+                            <select id="userTenantFilter" class="filter-select" onchange="renderUsersTable()">
+                                <option value="All">All School Tenants</option>
+                            </select>
+                            <select id="userRoleFilter" class="filter-select" onchange="renderUsersTable()">
+                                <option value="All">All Roles</option>
+                                <option value="ADMIN">Administrator</option>
+                                <option value="ACCOUNTANT">Accountant / Bursar</option>
+                                <option value="TEACHER">Faculty / Teacher</option>
+                                <option value="PARENT">Student / Parent Viewer</option>
+                            </select>
+                        </div>
+                        <div id="usersCountPill" class="currency-tag" style="background: #F3E8FF; color: #7E22CE; border-color: #E9D5FF;">
+                            0 Users Configured
+                        </div>
+                    </div>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Full Name</th>
+                                <th>Username</th>
+                                <th>Role</th>
+                                <th>School Tenant</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody"></tbody>
+                    </table>
                 </div>
             </section>
         </div>
@@ -1338,6 +1504,343 @@
         </div>
     </div>
 
+    <!-- MODAL: EDIT STUDENT -->
+    <div id="modalEditStudent" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Edit Student Details</h3>
+                <span style="cursor: pointer; font-size: 18px;" onclick="closeModal('modalEditStudent')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editStudentId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Admission No *</label>
+                        <input type="text" id="editStudentAdm" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Roll Number *</label>
+                        <input type="text" id="editStudentRoll" class="form-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Full Name *</label>
+                    <input type="text" id="editStudentName" class="form-input">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Class / Grade</label>
+                        <select id="editStudentGrade" class="form-input">
+                            <option value="Grade 9">Grade 9</option>
+                            <option value="Grade 10">Grade 10</option>
+                            <option value="Grade 11">Grade 11</option>
+                            <option value="Grade 12">Grade 12</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Section</label>
+                        <input type="text" id="editStudentSection" class="form-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Guardian Name</label>
+                    <input type="text" id="editStudentGuardian" class="form-input">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="text" id="editStudentPhone" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Monthly Fee (Rs.)</label>
+                        <input type="number" id="editStudentFee" class="form-input">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Enrollment Status</label>
+                    <select id="editStudentStatus" class="form-input">
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modalEditStudent')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveEditedStudent()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: EDIT INVOICE -->
+    <div id="modalEditInvoice" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Edit Fee Invoice</h3>
+                <span style="cursor: pointer; font-size: 18px;" onclick="closeModal('modalEditInvoice')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editInvoiceId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Month</label>
+                        <input type="text" id="editInvMonth" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Due Date</label>
+                        <input type="date" id="editInvDueDate" class="form-input">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tuition (Rs.)</label>
+                        <input type="number" id="editInvTuition" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Library (Rs.)</label>
+                        <input type="number" id="editInvLibrary" class="form-input">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Transport (Rs.)</label>
+                        <input type="number" id="editInvTransport" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Lab (Rs.)</label>
+                        <input type="number" id="editInvLab" class="form-input">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Paid Amount (Rs.)</label>
+                        <input type="number" id="editInvPaid" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Payment Status</label>
+                        <select id="editInvStatus" class="form-input">
+                            <option value="Paid">Paid</option>
+                            <option value="Partial">Partial</option>
+                            <option value="Pending">Pending</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modalEditInvoice')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveEditedInvoice()">Update Invoice</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD / EDIT STAFF -->
+    <div id="modalStaffDialog" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="staffModalTitle">Staff Member</h3>
+                <span style="cursor: pointer; font-size: 18px;" onclick="closeModal('modalStaffDialog')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="staffFormId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Employee ID *</label>
+                        <input type="text" id="staffFormEmpId" class="form-input" placeholder="EMP-004">
+                    </div>
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="staffFormName" class="form-input" placeholder="Teacher Name">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Role</label>
+                        <input type="text" id="staffFormRole" class="form-input" placeholder="Senior Teacher">
+                    </div>
+                    <div class="form-group">
+                        <label>Department</label>
+                        <input type="text" id="staffFormDept" class="form-input" placeholder="Science / Math">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Subjects Taught</label>
+                    <input type="text" id="staffFormSubjects" class="form-input" placeholder="Biology, Chemistry">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Base Salary (Rs.)</label>
+                        <input type="number" id="staffFormSalary" class="form-input" value="40000">
+                    </div>
+                    <div class="form-group">
+                        <label>Allowances (Rs.)</label>
+                        <input type="number" id="staffFormAllowances" class="form-input" value="4000">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Deductions (Rs.)</label>
+                        <input type="number" id="staffFormDeductions" class="form-input" value="2000">
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="staffFormStatus" class="form-input">
+                            <option value="Active">Active</option>
+                            <option value="On Leave">On Leave</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modalStaffDialog')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveStaffForm()">Save Staff</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: EDIT EXAM MARKS -->
+    <div id="modalEditMarks" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Edit Student Subject Marks</h3>
+                <span style="cursor: pointer; font-size: 18px;" onclick="closeModal('modalEditMarks')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="marksStudentId">
+                <p style="font-size: 14px; font-weight: 700; color: var(--primary);" id="marksStudentTitle">Student</p>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Mathematics (Max: 100)</label>
+                        <input type="number" id="markMath" class="form-input" min="0" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label>Physics (Max: 100)</label>
+                        <input type="number" id="markPhysics" class="form-input" min="0" max="100">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Chemistry (Max: 100)</label>
+                        <input type="number" id="markChem" class="form-input" min="0" max="100">
+                    </div>
+                    <div class="form-group">
+                        <label>English Literature (Max: 100)</label>
+                        <input type="number" id="markEnglish" class="form-input" min="0" max="100">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Computer Science (Max: 100)</label>
+                    <input type="number" id="markComputer" class="form-input" min="0" max="100">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modalEditMarks')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveEditedMarks()">Save Marks</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: LOGIN / AUTHENTICATION -->
+    <div id="modalLogin" class="modal-overlay">
+        <div class="modal-card" style="max-width: 440px;">
+            <div class="modal-header">
+                <h3>Multi-Tenant Authentication</h3>
+                <span style="cursor: pointer; font-size: 18px;" onclick="closeModal('modalLogin')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 14px;">
+                    Sign in to access your designated school campus dashboard and role-authorized tools:
+                </p>
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>Select School Tenant *</label>
+                    <select id="loginTenantSelect" class="form-input"></select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 12px;">
+                    <label>Username *</label>
+                    <input type="text" id="loginUsername" class="form-input" placeholder="e.g. admin">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 14px;">
+                    <label>Password *</label>
+                    <input type="password" id="loginPassword" class="form-input" placeholder="Enter password">
+                </div>
+
+                <div id="loginErrorMsg" style="display: none; padding: 8px 12px; background: #FEE2E2; color: #B91C1C; border-radius: var(--radius-md); font-size: 12px; margin-bottom: 12px; font-weight: 600;"></div>
+
+                <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 10px;" onclick="attemptLogin()">🔐 Sign In</button>
+
+                <div style="margin-top: 18px; border-top: 1px dashed var(--border); padding-top: 14px;">
+                    <p style="font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 8px; text-transform: uppercase;">
+                        Quick Role-Based Demo Logins:
+                    </p>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                        <button class="btn btn-secondary btn-sm" onclick="quickLogin('admin', 'admin123')">👑 Admin</button>
+                        <button class="btn btn-secondary btn-sm" onclick="quickLogin('accountant', 'pay123')">💳 Accountant</button>
+                        <button class="btn btn-secondary btn-sm" onclick="quickLogin('teacher', 'teach123')">👨‍🏫 Teacher</button>
+                        <button class="btn btn-secondary btn-sm" onclick="quickLogin('parent', 'read123')">👨‍👩‍👧 Parent / Student</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD / EDIT USER CREDENTIAL -->
+    <div id="modalAddEditUser" class="modal-overlay">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="userModalTitle">Create User Credential</h3>
+                <span style="cursor: pointer; font-size: 18px;" onclick="closeModal('modalAddEditUser')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="userFormId">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Full Name *</label>
+                        <input type="text" id="userFormFullName" class="form-input" placeholder="e.g. Ramesh Koirala">
+                    </div>
+                    <div class="form-group">
+                        <label>Username *</label>
+                        <input type="text" id="userFormUsername" class="form-input" placeholder="e.g. ramesh_admin">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Password *</label>
+                        <input type="text" id="userFormPassword" class="form-input" placeholder="Enter password (e.g. secret123)">
+                    </div>
+                    <div class="form-group">
+                        <label>Assigned Role (RBAC) *</label>
+                        <select id="userFormRole" class="form-input">
+                            <option value="ADMIN">Administrator (Full Access)</option>
+                            <option value="ACCOUNTANT">Accountant / Bursar (Billing & Fees)</option>
+                            <option value="TEACHER">Faculty / Teacher (Attendance & Exams)</option>
+                            <option value="PARENT">Student / Parent (Read-Only Viewer)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>School Tenant *</label>
+                        <select id="userFormTenant" class="form-input"></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Account Status *</label>
+                        <select id="userFormStatus" class="form-input">
+                            <option value="Active">Active (Permitted)</option>
+                            <option value="Disabled">Disabled (Suspended)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('modalAddEditUser')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveUserForm()">Save User Credential</button>
+            </div>
+        </div>
+    </div>
+
     <!-- JAVASCRIPT STATE ENGINE -->
     <script>
         // Nepali Rupees currency formatter
@@ -1370,22 +1873,112 @@
             '2026-10-01': { 1: 'Present', 2: 'Present', 3: 'Late', 4: 'Present' }
         };
 
+        const defaultSchools = [
+            {
+                id: 'school-1',
+                name: 'Oakridge International Academy',
+                motto: 'Excellence in Academic Leadership & Innovation',
+                address: 'Main Academic Campus, Kathmandu, Nepal',
+                phone: '+977-1-4567890',
+                email: 'info@school.edu.np',
+                academicSession: 'Session 2025-2026',
+                principalName: 'Dr. Arthur Pendelton',
+                currencySymbol: 'Rs.',
+                affiliationCode: 'NEB-REG-48201'
+            }
+        ];
+
+        const initialUsers = [
+            {
+                id: 1,
+                fullName: 'Dr. Arthur Pendelton (Admin)',
+                username: 'admin',
+                password: 'admin123',
+                role: 'ADMIN',
+                schoolTenantId: 'school-1',
+                status: 'Active',
+                createdAt: '2026-08-01'
+            },
+            {
+                id: 2,
+                fullName: 'Bishal Thapa (Accountant)',
+                username: 'accountant',
+                password: 'pay123',
+                role: 'ACCOUNTANT',
+                schoolTenantId: 'school-1',
+                status: 'Active',
+                createdAt: '2026-08-10'
+            },
+            {
+                id: 3,
+                fullName: 'Dr. Sarah Jenkins (Faculty)',
+                username: 'teacher',
+                password: 'teach123',
+                role: 'TEACHER',
+                schoolTenantId: 'school-1',
+                status: 'Active',
+                createdAt: '2026-08-15'
+            },
+            {
+                id: 4,
+                fullName: 'David Chen (Parent)',
+                username: 'parent',
+                password: 'read123',
+                role: 'PARENT',
+                schoolTenantId: 'school-1',
+                status: 'Active',
+                createdAt: '2026-09-01'
+            }
+        ];
+
         // LOAD FROM LOCALSTORAGE OR FALLBACK
         let students = JSON.parse(localStorage.getItem('edudesk_students')) || initialStudents;
         let invoices = JSON.parse(localStorage.getItem('edudesk_invoices')) || initialInvoices;
         let staff = JSON.parse(localStorage.getItem('edudesk_staff')) || initialStaff;
         let attendanceMap = JSON.parse(localStorage.getItem('edudesk_attendance')) || initialAttendance;
+        let schools = JSON.parse(localStorage.getItem('edudesk_schools')) || defaultSchools;
+        let activeSchoolId = localStorage.getItem('edudesk_active_school_id') || schools[0].id;
+        let activeSchool = schools.find(s => s.id === activeSchoolId) || schools[0];
+        let users = JSON.parse(localStorage.getItem('edudesk_users')) || initialUsers;
+        let currentUserId = localStorage.getItem('edudesk_current_user_id') || 1;
+        let currentUser = users.find(u => u.id == currentUserId) || users[0];
+        let examMarks = JSON.parse(localStorage.getItem('edudesk_exam_marks')) || {
+            1: { math: 92, physics: 88, chem: 90, english: 86, comp: 94 },
+            2: { math: 85, physics: 82, chem: 80, english: 88, comp: 89 },
+            3: { math: 78, physics: 75, chem: 82, english: 80, comp: 85 },
+            4: { math: 95, physics: 92, chem: 96, english: 90, comp: 98 }
+        };
 
         function persistState() {
             localStorage.setItem('edudesk_students', JSON.stringify(students));
             localStorage.setItem('edudesk_invoices', JSON.stringify(invoices));
             localStorage.setItem('edudesk_staff', JSON.stringify(staff));
             localStorage.setItem('edudesk_attendance', JSON.stringify(attendanceMap));
+            localStorage.setItem('edudesk_schools', JSON.stringify(schools));
+            localStorage.setItem('edudesk_active_school_id', activeSchool.id);
+            localStorage.setItem('edudesk_exam_marks', JSON.stringify(examMarks));
+            localStorage.setItem('edudesk_users', JSON.stringify(users));
+            localStorage.setItem('edudesk_current_user_id', currentUser.id);
             updateDashboardKPIs();
+            applyActiveSchoolToUI();
+            applyRBAC();
         }
 
         // TABS
         function switchTab(tabId) {
+            // Check permission
+            const permissions = {
+                'ADMIN': ['dashboard', 'students', 'fees', 'attendance', 'exams', 'staff', 'exports', 'settings', 'users'],
+                'ACCOUNTANT': ['dashboard', 'students', 'fees', 'staff', 'exports'],
+                'TEACHER': ['dashboard', 'students', 'attendance', 'exams'],
+                'PARENT': ['dashboard', 'students', 'fees', 'attendance', 'exams']
+            };
+            const allowed = permissions[currentUser.role] || permissions['ADMIN'];
+            if (!allowed.includes(tabId)) {
+                alert(`Access Denied: Your current role (${currentUser.role}) does not have permission to view ${tabId.toUpperCase()}.`);
+                return;
+            }
+
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
 
@@ -1394,7 +1987,7 @@
 
             // Set sidebar active
             const navItems = document.querySelectorAll('.nav-item');
-            const map = { dashboard: 0, students: 1, fees: 2, attendance: 3, exams: 4, staff: 5, exports: 6 };
+            const map = { dashboard: 0, students: 1, fees: 2, attendance: 3, exams: 4, staff: 5, exports: 6, settings: 7, users: 8 };
             if (navItems[map[tabId]]) navItems[map[tabId]].classList.add('active');
 
             if (tabId === 'dashboard') updateDashboardKPIs();
@@ -1403,6 +1996,8 @@
             if (tabId === 'attendance') renderAttendanceTable();
             if (tabId === 'exams') renderExamsTable();
             if (tabId === 'staff') renderStaffTable();
+            if (tabId === 'settings') renderSchoolSettingsTab();
+            if (tabId === 'users') renderUsersTable();
         }
 
         // DASHBOARD
@@ -1490,7 +2085,10 @@
                     <td class="currency-npr">${formatNpr(s.monthlyFee)}</td>
                     <td><span class="status-badge badge-active">${s.status}</span></td>
                     <td>
-                        <button class="btn btn-secondary btn-sm" onclick="deleteStudent(${s.id})">Delete</button>
+                        <div style="display: flex; gap: 6px;">
+                            <button class="btn btn-primary btn-sm" onclick="openEditStudentModal(${s.id})">Edit</button>
+                            <button class="btn btn-secondary btn-sm" onclick="deleteStudent(${s.id})">Delete</button>
+                        </div>
                     </td>
                 </tr>
             `).join('');
@@ -1525,6 +2123,7 @@
                         <td><span class="status-badge badge-${inv.paymentStatus.toLowerCase()}">${inv.paymentStatus}</span></td>
                         <td>
                             <div style="display: flex; gap: 6px;">
+                                <button class="btn btn-primary btn-sm" onclick="openEditInvoiceModal(${inv.id})">Edit</button>
                                 ${pending > 0 ? `<button class="btn btn-accent btn-sm" onclick="openCollectModal(${inv.id})">Collect</button>` : ''}
                                 <button class="btn btn-secondary btn-sm" onclick="printFeeBill(${inv.id})">Print Bill</button>
                             </div>
@@ -1587,17 +2186,25 @@
         function renderExamsTable() {
             const tbody = document.getElementById('examsTableBody');
             tbody.innerHTML = students.map(s => {
+                const marks = examMarks[s.id] || { math: 90, physics: 85, chem: 88, english: 85, comp: 92 };
+                const total = marks.math + marks.physics + marks.chem + marks.english + marks.comp;
+                const pct = (total / 500 * 100).toFixed(1);
+                const gpa = (total / 500 * 4.0).toFixed(2);
+                const isPass = total >= 200;
                 return `
                     <tr>
                         <td><strong>${s.admissionNo}</strong></td>
                         <td>${s.name}</td>
                         <td>${s.grade}</td>
-                        <td>450 / 500</td>
-                        <td>90.0%</td>
-                        <td><strong>3.92 / 4.0</strong></td>
-                        <td><span class="status-badge badge-paid">PASS (A+)</span></td>
+                        <td>${total} / 500</td>
+                        <td>${pct}%</td>
+                        <td><strong>${gpa} / 4.0</strong></td>
+                        <td><span class="status-badge ${isPass ? 'badge-paid' : 'badge-pending'}">${isPass ? 'PASS' : 'NEEDS IMPROVEMENT'}</span></td>
                         <td>
-                            <button class="btn btn-primary btn-sm" onclick="printTranscript(${s.id})">📄 View Report Card</button>
+                            <div style="display: flex; gap: 6px;">
+                                <button class="btn btn-secondary btn-sm" onclick="openEditMarksModal(${s.id})">✏️ Edit Marks</button>
+                                <button class="btn btn-primary btn-sm" onclick="printTranscript(${s.id})">📄 Report Card</button>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -1618,6 +2225,12 @@
                     <td class="currency-npr" style="color: var(--danger);">${formatNpr(st.deductions)}</td>
                     <td class="currency-npr" style="font-weight: 800; color: var(--primary);">${formatNpr(st.netSalary)}</td>
                     <td><span class="status-badge badge-active">${st.status}</span></td>
+                    <td>
+                        <div style="display: flex; gap: 6px;">
+                            <button class="btn btn-primary btn-sm" onclick="openEditStaffModal(${st.id})">Edit</button>
+                            <button class="btn btn-secondary btn-sm" onclick="deleteStaff(${st.id})">Delete</button>
+                        </div>
+                    </td>
                 </tr>
             `).join('');
         }
@@ -1665,6 +2278,604 @@
                 students = students.filter(x => x.id !== id);
                 persistState();
                 renderStudentsTable();
+            }
+        }
+
+        // EDIT STUDENT
+        function openEditStudentModal(id) {
+            const s = students.find(x => x.id === id);
+            if (!s) return;
+            document.getElementById('editStudentId').value = s.id;
+            document.getElementById('editStudentAdm').value = s.admissionNo;
+            document.getElementById('editStudentRoll').value = s.rollNo;
+            document.getElementById('editStudentName').value = s.name;
+            document.getElementById('editStudentGrade').value = s.grade;
+            document.getElementById('editStudentSection').value = s.section;
+            document.getElementById('editStudentGuardian').value = s.guardianName;
+            document.getElementById('editStudentPhone').value = s.phone;
+            document.getElementById('editStudentFee').value = s.monthlyFee;
+            document.getElementById('editStudentStatus').value = s.status || 'Active';
+            document.getElementById('modalEditStudent').classList.add('active');
+        }
+
+        function saveEditedStudent() {
+            const id = parseInt(document.getElementById('editStudentId').value);
+            const s = students.find(x => x.id === id);
+            if (!s) return;
+            s.admissionNo = document.getElementById('editStudentAdm').value.trim();
+            s.rollNo = document.getElementById('editStudentRoll').value.trim();
+            s.name = document.getElementById('editStudentName').value.trim();
+            s.grade = document.getElementById('editStudentGrade').value;
+            s.section = document.getElementById('editStudentSection').value.trim();
+            s.guardianName = document.getElementById('editStudentGuardian').value.trim();
+            s.phone = document.getElementById('editStudentPhone').value.trim();
+            s.monthlyFee = parseFloat(document.getElementById('editStudentFee').value) || 0;
+            s.status = document.getElementById('editStudentStatus').value;
+            persistState();
+            closeModal('modalEditStudent');
+            renderStudentsTable();
+            alert('Student details updated successfully!');
+        }
+
+        // EDIT INVOICE
+        function openEditInvoiceModal(id) {
+            const inv = invoices.find(x => x.id === id);
+            if (!inv) return;
+            document.getElementById('editInvoiceId').value = inv.id;
+            document.getElementById('editInvMonth').value = inv.monthYear;
+            document.getElementById('editInvDueDate').value = inv.dueDate;
+            document.getElementById('editInvTuition').value = inv.tuitionFee;
+            document.getElementById('editInvLibrary').value = inv.libraryFee;
+            document.getElementById('editInvTransport').value = inv.transportFee;
+            document.getElementById('editInvLab').value = inv.labFee;
+            document.getElementById('editInvPaid').value = inv.paidAmount;
+            document.getElementById('editInvStatus').value = inv.paymentStatus;
+            document.getElementById('modalEditInvoice').classList.add('active');
+        }
+
+        function saveEditedInvoice() {
+            const id = parseInt(document.getElementById('editInvoiceId').value);
+            const inv = invoices.find(x => x.id === id);
+            if (!inv) return;
+            inv.monthYear = document.getElementById('editInvMonth').value.trim();
+            inv.dueDate = document.getElementById('editInvDueDate').value;
+            inv.tuitionFee = parseFloat(document.getElementById('editInvTuition').value) || 0;
+            inv.libraryFee = parseFloat(document.getElementById('editInvLibrary').value) || 0;
+            inv.transportFee = parseFloat(document.getElementById('editInvTransport').value) || 0;
+            inv.labFee = parseFloat(document.getElementById('editInvLab').value) || 0;
+            inv.paidAmount = parseFloat(document.getElementById('editInvPaid').value) || 0;
+            inv.paymentStatus = document.getElementById('editInvStatus').value;
+            inv.totalAmount = inv.tuitionFee + inv.libraryFee + inv.transportFee + inv.labFee;
+            persistState();
+            closeModal('modalEditInvoice');
+            renderInvoicesTable();
+            alert('Invoice updated successfully!');
+        }
+
+        // STAFF ACTIONS
+        function openAddStaffModal() {
+            document.getElementById('staffFormId').value = '';
+            document.getElementById('staffModalTitle').innerText = 'Add Staff Member';
+            document.getElementById('staffFormEmpId').value = 'EMP-00' + (staff.length + 1);
+            document.getElementById('staffFormName').value = '';
+            document.getElementById('staffFormRole').value = 'Senior Teacher';
+            document.getElementById('staffFormDept').value = 'General Sciences';
+            document.getElementById('staffFormSubjects').value = 'General Science';
+            document.getElementById('staffFormSalary').value = '42000';
+            document.getElementById('staffFormAllowances').value = '4500';
+            document.getElementById('staffFormDeductions').value = '2000';
+            document.getElementById('staffFormStatus').value = 'Active';
+            document.getElementById('modalStaffDialog').classList.add('active');
+        }
+
+        function openEditStaffModal(id) {
+            const st = staff.find(x => x.id === id);
+            if (!st) return;
+            document.getElementById('staffFormId').value = st.id;
+            document.getElementById('staffModalTitle').innerText = 'Edit Staff Member';
+            document.getElementById('staffFormEmpId').value = st.employeeId;
+            document.getElementById('staffFormName').value = st.name;
+            document.getElementById('staffFormRole').value = st.role;
+            document.getElementById('staffFormDept').value = st.department;
+            document.getElementById('staffFormSubjects').value = st.subjects;
+            document.getElementById('staffFormSalary').value = st.baseSalary;
+            document.getElementById('staffFormAllowances').value = st.allowances;
+            document.getElementById('staffFormDeductions').value = st.deductions;
+            document.getElementById('staffFormStatus').value = st.status;
+            document.getElementById('modalStaffDialog').classList.add('active');
+        }
+
+        function saveStaffForm() {
+            const idVal = document.getElementById('staffFormId').value;
+            const empId = document.getElementById('staffFormEmpId').value.trim() || 'EMP-00' + (staff.length + 1);
+            const name = document.getElementById('staffFormName').value.trim() || 'Teacher Name';
+            const role = document.getElementById('staffFormRole').value.trim() || 'Teacher';
+            const dept = document.getElementById('staffFormDept').value.trim() || 'Academic';
+            const subjects = document.getElementById('staffFormSubjects').value.trim() || 'General';
+            const baseSalary = parseFloat(document.getElementById('staffFormSalary').value) || 0;
+            const allowances = parseFloat(document.getElementById('staffFormAllowances').value) || 0;
+            const deductions = parseFloat(document.getElementById('staffFormDeductions').value) || 0;
+            const status = document.getElementById('staffFormStatus').value;
+            const netSalary = baseSalary + allowances - deductions;
+
+            if (idVal) {
+                const st = staff.find(x => x.id === parseInt(idVal));
+                if (st) {
+                    st.employeeId = empId;
+                    st.name = name;
+                    st.role = role;
+                    st.department = dept;
+                    st.subjects = subjects;
+                    st.baseSalary = baseSalary;
+                    st.allowances = allowances;
+                    st.deductions = deductions;
+                    st.netSalary = netSalary;
+                    st.status = status;
+                }
+            } else {
+                staff.push({
+                    id: Date.now(),
+                    employeeId: empId,
+                    name: name,
+                    role: role,
+                    department: dept,
+                    subjects: subjects,
+                    baseSalary: baseSalary,
+                    allowances: allowances,
+                    deductions: deductions,
+                    netSalary: netSalary,
+                    status: status
+                });
+            }
+            persistState();
+            closeModal('modalStaffDialog');
+            renderStaffTable();
+            alert('Staff records saved successfully!');
+        }
+
+        function deleteStaff(id) {
+            if (confirm('Are you sure you want to remove this staff profile?')) {
+                staff = staff.filter(x => x.id !== id);
+                persistState();
+                renderStaffTable();
+            }
+        }
+
+        // EDIT EXAM MARKS
+        function openEditMarksModal(studentId) {
+            const s = students.find(x => x.id === studentId);
+            if (!s) return;
+            const marks = examMarks[s.id] || { math: 90, physics: 85, chem: 88, english: 85, comp: 92 };
+            document.getElementById('marksStudentId').value = s.id;
+            document.getElementById('marksStudentTitle').innerText = `${s.name} (${s.admissionNo}) - ${s.grade}`;
+            document.getElementById('markMath').value = marks.math;
+            document.getElementById('markPhysics').value = marks.physics;
+            document.getElementById('markChem').value = marks.chem;
+            document.getElementById('markEnglish').value = marks.english;
+            document.getElementById('markComputer').value = marks.comp;
+            document.getElementById('modalEditMarks').classList.add('active');
+        }
+
+        function saveEditedMarks() {
+            const sId = parseInt(document.getElementById('marksStudentId').value);
+            examMarks[sId] = {
+                math: parseFloat(document.getElementById('markMath').value) || 0,
+                physics: parseFloat(document.getElementById('markPhysics').value) || 0,
+                chem: parseFloat(document.getElementById('markChem').value) || 0,
+                english: parseFloat(document.getElementById('markEnglish').value) || 0,
+                comp: parseFloat(document.getElementById('markComputer').value) || 0
+            };
+            persistState();
+            closeModal('modalEditMarks');
+            renderExamsTable();
+            alert('Student examination marks updated!');
+        }
+
+        // SCHOOL SETTINGS & MULTI-SCHOOL
+        function applyActiveSchoolToUI() {
+            if (!activeSchool) return;
+            const brandSpan = document.querySelector('.brand-meta span');
+            if (brandSpan) brandSpan.innerText = activeSchool.name;
+            const currencyPill = document.querySelector('.currency-tag strong');
+            if (currencyPill) currencyPill.innerText = `NPR (${activeSchool.currencySymbol || 'Rs.'})`;
+        }
+
+        function renderSchoolSettingsTab() {
+            if (!activeSchool) return;
+            document.getElementById('settingSchoolName').value = activeSchool.name || '';
+            document.getElementById('settingSchoolMotto').value = activeSchool.motto || '';
+            document.getElementById('settingCampusAddress').value = activeSchool.address || '';
+            document.getElementById('settingSchoolPhone').value = activeSchool.phone || '';
+            document.getElementById('settingSchoolEmail').value = activeSchool.email || '';
+            document.getElementById('settingAcademicSession').value = activeSchool.academicSession || 'Session 2025-2026';
+            document.getElementById('settingPrincipalName').value = activeSchool.principalName || '';
+            document.getElementById('settingCurrencySymbol').value = activeSchool.currencySymbol || 'Rs.';
+            document.getElementById('settingAffiliationCode').value = activeSchool.affiliationCode || '';
+
+            // Render Campuses list
+            const container = document.getElementById('schoolsListContainer');
+            container.innerHTML = schools.map(sch => {
+                const isActive = sch.id === activeSchool.id;
+                return `
+                    <div style="background: ${isActive ? '#EFF6FF' : '#F8FAFC'}; border: 1px solid ${isActive ? '#3B82F6' : 'var(--border)'}; border-radius: var(--radius-md); padding: 12px; display: flex; justify-content: space-between; align-items: center;">
+                        <div>
+                            <div style="font-weight: 700; font-size: 13px; color: var(--primary);">
+                                ${sch.name} ${isActive ? '<span class="status-badge badge-active" style="margin-left: 6px;">Active</span>' : ''}
+                            </div>
+                            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">
+                                ${sch.address} &bull; ${sch.academicSession}
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 6px;">
+                            ${!isActive ? `<button class="btn btn-primary btn-sm" onclick="switchSchoolBranch('${sch.id}')">Switch</button>` : ''}
+                            ${schools.length > 1 ? `<button class="btn btn-secondary btn-sm" onclick="deleteSchoolBranch('${sch.id}')">Remove</button>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function saveActiveSchoolSettings() {
+            if (!activeSchool) return;
+            const newName = document.getElementById('settingSchoolName').value.trim();
+            if (!newName) {
+                alert('School name cannot be empty');
+                return;
+            }
+            activeSchool.name = newName;
+            activeSchool.motto = document.getElementById('settingSchoolMotto').value.trim();
+            activeSchool.address = document.getElementById('settingCampusAddress').value.trim();
+            activeSchool.phone = document.getElementById('settingSchoolPhone').value.trim();
+            activeSchool.email = document.getElementById('settingSchoolEmail').value.trim();
+            activeSchool.academicSession = document.getElementById('settingAcademicSession').value.trim();
+            activeSchool.principalName = document.getElementById('settingPrincipalName').value.trim();
+            activeSchool.currencySymbol = document.getElementById('settingCurrencySymbol').value.trim();
+            activeSchool.affiliationCode = document.getElementById('settingAffiliationCode').value.trim();
+
+            const idx = schools.findIndex(s => s.id === activeSchool.id);
+            if (idx !== -1) schools[idx] = activeSchool;
+
+            persistState();
+            renderSchoolSettingsTab();
+            alert(`School profile updated: ${activeSchool.name}!`);
+        }
+
+        function addNewSchoolBranch() {
+            const name = document.getElementById('newSchoolName').value.trim();
+            const addr = document.getElementById('newSchoolAddress').value.trim();
+            const phone = document.getElementById('newSchoolPhone').value.trim();
+            const principal = document.getElementById('newSchoolPrincipal').value.trim();
+
+            if (!name) {
+                alert('Please enter a name for the new school branch');
+                return;
+            }
+
+            const newSchool = {
+                id: 'school-' + Date.now(),
+                name: name,
+                motto: 'Knowledge, Character and Excellence',
+                address: addr || 'Nepal Academic Campus',
+                phone: phone || '+977-1-XXXXXX',
+                email: 'info@' + name.toLowerCase().replace(/[^a-z]/g, '') + '.edu.np',
+                academicSession: 'Session 2025-2026',
+                principalName: principal || 'Headmaster',
+                currencySymbol: 'Rs.',
+                affiliationCode: 'NEB-REG-' + Math.floor(10000 + Math.random() * 90000)
+            };
+
+            schools.push(newSchool);
+            activeSchool = newSchool;
+            document.getElementById('newSchoolName').value = '';
+            document.getElementById('newSchoolAddress').value = '';
+            document.getElementById('newSchoolPhone').value = '';
+            document.getElementById('newSchoolPrincipal').value = '';
+            persistState();
+            renderSchoolSettingsTab();
+            alert(`New school branch added: ${newSchool.name}! Switched as active campus.`);
+        }
+
+        function switchSchoolBranch(id) {
+            const found = schools.find(s => s.id === id);
+            if (found) {
+                activeSchool = found;
+                persistState();
+                renderSchoolSettingsTab();
+                alert(`Switched active school to: ${found.name}`);
+            }
+        }
+
+        function deleteSchoolBranch(id) {
+            if (confirm('Delete this school branch?')) {
+                schools = schools.filter(s => s.id !== id);
+                if (activeSchool.id === id) activeSchool = schools[0];
+                persistState();
+                renderSchoolSettingsTab();
+            }
+        }
+
+        // --- ROLE-BASED ACCESS CONTROL (RBAC) & MULTI-TENANT AUTH ---
+        function applyRBAC() {
+            if (!currentUser) return;
+
+            // 1. Update Header User Display
+            const headerName = document.getElementById('headerUserName');
+            if (headerName) headerName.innerText = currentUser.fullName;
+
+            const roleClassMap = {
+                'ADMIN': 'badge-role-admin',
+                'ACCOUNTANT': 'badge-role-accountant',
+                'TEACHER': 'badge-role-teacher',
+                'PARENT': 'badge-role-parent'
+            };
+            const headerRole = document.getElementById('headerUserRole');
+            if (headerRole) {
+                headerRole.innerHTML = `<span class="status-badge ${roleClassMap[currentUser.role] || 'badge-role-admin'}">${currentUser.role}</span>`;
+            }
+
+            // 2. Define accessible sections per role
+            const permissions = {
+                'ADMIN': ['dashboard', 'students', 'fees', 'attendance', 'exams', 'staff', 'exports', 'settings', 'users'],
+                'ACCOUNTANT': ['dashboard', 'students', 'fees', 'staff', 'exports'],
+                'TEACHER': ['dashboard', 'students', 'attendance', 'exams'],
+                'PARENT': ['dashboard', 'students', 'fees', 'attendance', 'exams']
+            };
+
+            const allowed = permissions[currentUser.role] || permissions['ADMIN'];
+
+            const navElements = {
+                dashboard: document.querySelector('.nav-item[onclick*="dashboard"]'),
+                students: document.querySelector('.nav-item[onclick*="students"]'),
+                fees: document.querySelector('.nav-item[onclick*="fees"]'),
+                attendance: document.querySelector('.nav-item[onclick*="attendance"]'),
+                exams: document.querySelector('.nav-item[onclick*="exams"]'),
+                staff: document.querySelector('.nav-item[onclick*="staff"]'),
+                exports: document.querySelector('.nav-item[onclick*="exports"]'),
+                settings: document.getElementById('nav-settings'),
+                users: document.getElementById('nav-users')
+            };
+
+            for (const [key, el] of Object.entries(navElements)) {
+                if (el) {
+                    el.style.display = allowed.includes(key) ? 'flex' : 'none';
+                }
+            }
+        }
+
+        function openLoginModal() {
+            populateTenantDropdowns();
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('loginErrorMsg').style.display = 'none';
+            document.getElementById('modalLogin').classList.add('active');
+        }
+
+        function populateTenantDropdowns() {
+            const loginSelect = document.getElementById('loginTenantSelect');
+            if (loginSelect) {
+                loginSelect.innerHTML = schools.map(sch => `
+                    <option value="${sch.id}" ${sch.id === activeSchool.id ? 'selected' : ''}>${sch.name} (${sch.address})</option>
+                `).join('');
+            }
+
+            const userTenantSelect = document.getElementById('userFormTenant');
+            if (userTenantSelect) {
+                userTenantSelect.innerHTML = schools.map(sch => `
+                    <option value="${sch.id}">${sch.name}</option>
+                `).join('');
+            }
+
+            const filterTenant = document.getElementById('userTenantFilter');
+            if (filterTenant) {
+                const currentVal = filterTenant.value;
+                filterTenant.innerHTML = `<option value="All">All School Tenants</option>` + schools.map(sch => `
+                    <option value="${sch.id}" ${sch.id === currentVal ? 'selected' : ''}>${sch.name}</option>
+                `).join('');
+            }
+        }
+
+        function attemptLogin() {
+            const tenantId = document.getElementById('loginTenantSelect').value;
+            const uName = document.getElementById('loginUsername').value.trim().toLowerCase();
+            const pass = document.getElementById('loginPassword').value.trim();
+            const errorBox = document.getElementById('loginErrorMsg');
+
+            if (!uName || !pass) {
+                errorBox.innerText = 'Please enter both username and password.';
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            const foundUser = users.find(u => u.username.toLowerCase() === uName && u.password === pass);
+
+            if (!foundUser) {
+                errorBox.innerText = 'Invalid username or password. Check credentials or use quick demo logins below.';
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            if (foundUser.status === 'Disabled') {
+                errorBox.innerText = 'This account has been deactivated by the School Administrator.';
+                errorBox.style.display = 'block';
+                return;
+            }
+
+            // Associate with selected tenant or user tenant
+            const targetSchool = schools.find(s => s.id === tenantId) || schools.find(s => s.id === foundUser.schoolTenantId) || schools[0];
+            activeSchool = targetSchool;
+            currentUser = foundUser;
+
+            persistState();
+            closeModal('modalLogin');
+            alert(`Welcome, ${foundUser.fullName}! Logged in as ${foundUser.role} at ${activeSchool.name}.`);
+            switchTab('dashboard');
+        }
+
+        function quickLogin(demoUsername, demoPass) {
+            document.getElementById('loginUsername').value = demoUsername;
+            document.getElementById('loginPassword').value = demoPass;
+            attemptLogin();
+        }
+
+        function logoutUser() {
+            if (confirm('Are you sure you want to sign out?')) {
+                openLoginModal();
+            }
+        }
+
+        // --- USER MANAGEMENT (CRUD FOR ADMINISTRATORS) ---
+        function renderUsersTable() {
+            populateTenantDropdowns();
+            const query = (document.getElementById('userSearchInput')?.value || '').toLowerCase().trim();
+            const tenantFilter = document.getElementById('userTenantFilter')?.value || 'All';
+            const roleFilter = document.getElementById('userRoleFilter')?.value || 'All';
+
+            const filtered = users.filter(u => {
+                const matchesQuery = u.fullName.toLowerCase().includes(query) || u.username.toLowerCase().includes(query);
+                const matchesTenant = tenantFilter === 'All' || u.schoolTenantId === tenantFilter;
+                const matchesRole = roleFilter === 'All' || u.role === roleFilter;
+                return matchesQuery && matchesTenant && matchesRole;
+            });
+
+            const countPill = document.getElementById('usersCountPill');
+            if (countPill) countPill.innerText = `${filtered.length} Users Configured`;
+
+            const tbody = document.getElementById('usersTableBody');
+            if (!tbody) return;
+
+            const roleClassMap = {
+                'ADMIN': 'badge-role-admin',
+                'ACCOUNTANT': 'badge-role-accountant',
+                'TEACHER': 'badge-role-teacher',
+                'PARENT': 'badge-role-parent'
+            };
+
+            tbody.innerHTML = filtered.map(u => {
+                const tenantSchool = schools.find(s => s.id === u.schoolTenantId);
+                const tenantName = tenantSchool ? tenantSchool.name : 'All Campuses';
+                const isActive = u.status === 'Active';
+
+                return `
+                    <tr>
+                        <td>
+                            <strong>${u.fullName}</strong>
+                            ${u.id === currentUser.id ? '<span style="font-size: 10px; background: #E0E7FF; color: #3730A3; padding: 2px 6px; border-radius: 4px; margin-left: 6px; font-weight: 700;">YOU</span>' : ''}
+                        </td>
+                        <td><code style="font-family: monospace; font-weight: 700;">@${u.username}</code></td>
+                        <td><span class="status-badge ${roleClassMap[u.role] || 'badge-role-admin'}">${u.role}</span></td>
+                        <td>${tenantName}</td>
+                        <td>
+                            <span class="status-badge ${isActive ? 'badge-active' : 'badge-disabled'}">${u.status}</span>
+                        </td>
+                        <td>
+                            <div style="display: flex; gap: 6px;">
+                                <button class="btn btn-primary btn-sm" onclick="openEditUserModal(${u.id})">Edit</button>
+                                <button class="btn btn-secondary btn-sm" onclick="toggleUserStatus(${u.id})">
+                                    ${isActive ? 'Deactivate' : 'Activate'}
+                                </button>
+                                ${users.length > 1 && u.id !== currentUser.id ? `<button class="btn btn-secondary btn-sm" style="color: var(--danger);" onclick="deleteUser(${u.id})">Delete</button>` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openAddUserModal() {
+            populateTenantDropdowns();
+            document.getElementById('userFormId').value = '';
+            document.getElementById('userModalTitle').innerText = 'Create User Credential';
+            document.getElementById('userFormFullName').value = '';
+            document.getElementById('userFormUsername').value = '';
+            document.getElementById('userFormPassword').value = '';
+            document.getElementById('userFormRole').value = 'TEACHER';
+            document.getElementById('userFormTenant').value = activeSchool.id;
+            document.getElementById('userFormStatus').value = 'Active';
+            document.getElementById('modalAddEditUser').classList.add('active');
+        }
+
+        function openEditUserModal(id) {
+            populateTenantDropdowns();
+            const u = users.find(x => x.id === id);
+            if (!u) return;
+            document.getElementById('userFormId').value = u.id;
+            document.getElementById('userModalTitle').innerText = 'Edit User Credential: ' + u.username;
+            document.getElementById('userFormFullName').value = u.fullName;
+            document.getElementById('userFormUsername').value = u.username;
+            document.getElementById('userFormPassword').value = u.password;
+            document.getElementById('userFormRole').value = u.role;
+            document.getElementById('userFormTenant').value = u.schoolTenantId || activeSchool.id;
+            document.getElementById('userFormStatus').value = u.status;
+            document.getElementById('modalAddEditUser').classList.add('active');
+        }
+
+        function saveUserForm() {
+            const idVal = document.getElementById('userFormId').value;
+            const fullName = document.getElementById('userFormFullName').value.trim();
+            const username = document.getElementById('userFormUsername').value.trim().toLowerCase();
+            const password = document.getElementById('userFormPassword').value.trim();
+            const role = document.getElementById('userFormRole').value;
+            const tenantId = document.getElementById('userFormTenant').value;
+            const status = document.getElementById('userFormStatus').value;
+
+            if (!fullName || !username || !password) {
+                alert('Please enter full name, username, and password.');
+                return;
+            }
+
+            // Check duplicate username
+            const duplicate = users.find(u => u.username.toLowerCase() === username && (!idVal || u.id !== parseInt(idVal)));
+            if (duplicate) {
+                alert('Username already taken. Please choose a different unique username.');
+                return;
+            }
+
+            if (idVal) {
+                const u = users.find(x => x.id === parseInt(idVal));
+                if (u) {
+                    u.fullName = fullName;
+                    u.username = username;
+                    u.password = password;
+                    u.role = role;
+                    u.schoolTenantId = tenantId;
+                    u.status = status;
+                }
+            } else {
+                users.push({
+                    id: Date.now(),
+                    fullName: fullName,
+                    username: username,
+                    password: password,
+                    role: role,
+                    schoolTenantId: tenantId,
+                    status: status,
+                    createdAt: new Date().toISOString().split('T')[0]
+                });
+            }
+
+            persistState();
+            closeModal('modalAddEditUser');
+            renderUsersTable();
+            alert('User credentials saved successfully!');
+        }
+
+        function toggleUserStatus(id) {
+            const u = users.find(x => x.id === id);
+            if (!u) return;
+            if (u.id === currentUser.id) {
+                alert('Cannot deactivate the currently logged in administrator account.');
+                return;
+            }
+            u.status = u.status === 'Active' ? 'Disabled' : 'Active';
+            persistState();
+            renderUsersTable();
+        }
+
+        function deleteUser(id) {
+            if (confirm('Permanently remove this user account?')) {
+                users = users.filter(x => x.id !== id);
+                persistState();
+                renderUsersTable();
             }
         }
 
@@ -1785,8 +2996,8 @@
 
             const html = `
                 <div class="print-header">
-                    <h2>OAKRIDGE ACADEMY</h2>
-                    <p style="font-size: 11px; color: #64748B;">OFFICIAL STUDENT FEE INVOICE & RECEIPT &bull; NEPAL</p>
+                    <h2>${(activeSchool.name || 'OAKRIDGE ACADEMY').toUpperCase()}</h2>
+                    <p style="font-size: 11px; color: #64748B;">${activeSchool.address || 'Kathmandu, Nepal'} &bull; Phone: ${activeSchool.phone || '+977-1-4567890'}</p>
                     <p style="font-size: 13px; font-weight: 700; margin-top: 6px;">Invoice No: ${inv.invoiceNo} &bull; Due: ${inv.dueDate}</p>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 16px; font-size: 12px;">
@@ -1805,7 +3016,7 @@
                     <thead>
                         <tr style="background: #F1F5F9; border-bottom: 2px solid #CBD5E1;">
                             <th style="padding: 8px; text-align: left;">Account Head</th>
-                            <th style="padding: 8px; text-align: right;">Amount (Nepali Rs.)</th>
+                            <th style="padding: 8px; text-align: right;">Amount (${activeSchool.currencySymbol || 'Rs.'})</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -1840,11 +3051,16 @@
 
         function printTranscript(studentId) {
             const s = students.find(x => x.id === studentId) || students[0];
+            const marks = examMarks[s.id] || { math: 92, physics: 88, chem: 90, english: 86, comp: 94 };
+            const total = marks.math + marks.physics + marks.chem + marks.english + marks.comp;
+            const pct = (total / 500 * 100).toFixed(1);
+            const gpa = (total / 500 * 4.0).toFixed(2);
+
             const html = `
                 <div class="print-header">
-                    <h2>OAKRIDGE ACADEMY</h2>
-                    <p style="font-size: 11px; color: #64748B;">OFFICIAL STUDENT ACADEMIC TRANSCRIPT & REPORT CARD</p>
-                    <p style="font-size: 13px; font-weight: 700; margin-top: 6px;">Mid-Term Assessment Examination 2026</p>
+                    <h2>${(activeSchool.name || 'OAKRIDGE ACADEMY').toUpperCase()}</h2>
+                    <p style="font-size: 11px; color: #64748B;">${activeSchool.address || 'Kathmandu, Nepal'} &bull; Affiliation: ${activeSchool.affiliationCode || 'NEB-REG-48201'}</p>
+                    <p style="font-size: 13px; font-weight: 700; margin-top: 6px;">Official Academic Transcript & Report Card &bull; ${activeSchool.academicSession || 'Session 2025-2026'}</p>
                 </div>
                 <div style="display: flex; justify-content: space-between; margin-bottom: 16px; font-size: 12px;">
                     <div>
@@ -1854,7 +3070,7 @@
                     </div>
                     <div style="text-align: right;">
                         <p><strong>Class:</strong> ${s.grade} - Section ${s.section}</p>
-                        <p><strong>Academic Year:</strong> 2025-2026</p>
+                        <p><strong>Academic Year:</strong> ${activeSchool.academicSession || '2025-2026'}</p>
                         <p><strong>Attendance:</strong> 96.2%</p>
                     </div>
                 </div>
@@ -1869,27 +3085,27 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 6px 8px;">Mathematics</td><td style="text-align: center;">100</td><td style="text-align: center;">92</td><td style="text-align: center; font-weight: 700; color: #059669;">A+</td><td style="text-align: center;">4.0</td></tr>
-                        <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 6px 8px;">Physics</td><td style="text-align: center;">100</td><td style="text-align: center;">88</td><td style="text-align: center; font-weight: 700; color: #059669;">A</td><td style="text-align: center;">3.8</td></tr>
-                        <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 6px 8px;">Chemistry</td><td style="text-align: center;">100</td><td style="text-align: center;">90</td><td style="text-align: center; font-weight: 700; color: #059669;">A+</td><td style="text-align: center;">4.0</td></tr>
-                        <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 6px 8px;">English Literature</td><td style="text-align: center;">100</td><td style="text-align: center;">86</td><td style="text-align: center; font-weight: 700; color: #059669;">A</td><td style="text-align: center;">3.7</td></tr>
-                        <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 6px 8px;">Computer Science</td><td style="text-align: center;">100</td><td style="text-align: center;">94</td><td style="text-align: center; font-weight: 700; color: #059669;">A+</td><td style="text-align: center;">4.0</td></tr>
+                        <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 6px 8px;">Mathematics</td><td style="text-align: center;">100</td><td style="text-align: center;">${marks.math}</td><td style="text-align: center; font-weight: 700; color: #059669;">${marks.math >= 90 ? 'A+' : marks.math >= 80 ? 'A' : 'B'}</td><td style="text-align: center;">${(marks.math/25).toFixed(1)}</td></tr>
+                        <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 6px 8px;">Physics</td><td style="text-align: center;">100</td><td style="text-align: center;">${marks.physics}</td><td style="text-align: center; font-weight: 700; color: #059669;">${marks.physics >= 90 ? 'A+' : marks.physics >= 80 ? 'A' : 'B'}</td><td style="text-align: center;">${(marks.physics/25).toFixed(1)}</td></tr>
+                        <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 6px 8px;">Chemistry</td><td style="text-align: center;">100</td><td style="text-align: center;">${marks.chem}</td><td style="text-align: center; font-weight: 700; color: #059669;">${marks.chem >= 90 ? 'A+' : marks.chem >= 80 ? 'A' : 'B'}</td><td style="text-align: center;">${(marks.chem/25).toFixed(1)}</td></tr>
+                        <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 6px 8px;">English Literature</td><td style="text-align: center;">100</td><td style="text-align: center;">${marks.english}</td><td style="text-align: center; font-weight: 700; color: #059669;">${marks.english >= 90 ? 'A+' : marks.english >= 80 ? 'A' : 'B'}</td><td style="text-align: center;">${(marks.english/25).toFixed(1)}</td></tr>
+                        <tr style="border-bottom: 1px solid #E2E8F0;"><td style="padding: 6px 8px;">Computer Science</td><td style="text-align: center;">100</td><td style="text-align: center;">${marks.comp}</td><td style="text-align: center; font-weight: 700; color: #059669;">${marks.comp >= 90 ? 'A+' : marks.comp >= 80 ? 'A' : 'B'}</td><td style="text-align: center;">${(marks.comp/25).toFixed(1)}</td></tr>
                     </tbody>
                 </table>
                 <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 12px; font-size: 12px; display: flex; justify-content: space-between;">
                     <div>
-                        <p><strong>Total Marks:</strong> 450 / 500 (90.0%)</p>
-                        <p><strong>Evaluation:</strong> Excellent (Distinction)</p>
+                        <p><strong>Total Marks:</strong> ${total} / 500 (${pct}%)</p>
+                        <p><strong>Evaluation:</strong> ${pct >= 80 ? 'Excellent (Distinction)' : 'Satisfactory'}</p>
                     </div>
                     <div style="text-align: right;">
-                        <p><strong>Cumulative GPA:</strong> 3.90 / 4.00</p>
+                        <p><strong>Cumulative GPA:</strong> ${gpa} / 4.00</p>
                         <p style="color: #059669; font-weight: 800;">FINAL STATUS: PASSED</p>
                     </div>
                 </div>
                 <div style="margin-top: 36px; display: flex; justify-content: space-between; font-size: 11px; text-align: center;">
                     <div style="border-top: 1px solid #94A3B8; width: 130px; padding-top: 4px;">Class Teacher</div>
                     <div style="border-top: 1px solid #94A3B8; width: 130px; padding-top: 4px;">Controller of Exams</div>
-                    <div style="border-top: 1px solid #94A3B8; width: 130px; padding-top: 4px;">Principal Signature</div>
+                    <div style="border-top: 1px solid #94A3B8; width: 150px; padding-top: 4px;">Principal: ${activeSchool.principalName || 'Principal Signature'}</div>
                 </div>
             `;
 
@@ -2011,6 +3227,8 @@
         }
 
         // INITIAL LOAD
+        applyActiveSchoolToUI();
+        applyRBAC();
         updateDashboardKPIs();
     </script>
 </body>

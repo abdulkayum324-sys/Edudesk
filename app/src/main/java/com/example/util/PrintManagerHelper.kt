@@ -14,7 +14,12 @@ import com.example.data.model.StudentReportCard
 
 object PrintManagerHelper {
 
-    fun generateBillHtml(student: Student, invoice: FeeRecord): String {
+    fun generateBillHtml(
+        student: Student,
+        invoice: FeeRecord,
+        schoolName: String = "Oakridge International Academy",
+        schoolAddress: String = "Main Academic Campus, Kathmandu, Nepal"
+    ): String {
         return """
         <!DOCTYPE html>
         <html>
@@ -44,8 +49,8 @@ object PrintManagerHelper {
         </head>
         <body>
             <div class="header">
-                <div class="school-title">OAKRIDGE INTERNATIONAL ACADEMY</div>
-                <div class="school-sub">Main Academic Campus &bull; 100 University Boulevard &bull; Phone: (555) 019-2834</div>
+                <div class="school-title">${schoolName.uppercase()}</div>
+                <div class="school-sub">${schoolAddress}</div>
                 <h3 style="margin-top: 12px; margin-bottom: 4px; letter-spacing: 1px;">OFFICIAL STUDENT FEE INVOICE</h3>
                 <div>Invoice No: <strong>${invoice.invoiceNo}</strong> &bull; Date: <strong>${invoice.dueDate}</strong></div>
             </div>
@@ -136,7 +141,11 @@ object PrintManagerHelper {
         """.trimIndent()
     }
 
-    fun generateReportCardHtml(card: StudentReportCard): String {
+    fun generateReportCardHtml(
+        card: StudentReportCard,
+        schoolName: String = "Oakridge International Academy",
+        schoolAddress: String = "Main Academic Campus, Kathmandu, Nepal"
+    ): String {
         val rows = card.subjectResults.joinToString("") { s ->
             val color = if (s.isPassed) "#059669" else "#dc2626"
             """
@@ -162,6 +171,7 @@ object PrintManagerHelper {
                 body { font-family: 'Helvetica Neue', Arial, sans-serif; margin: 24px; color: #0f172a; }
                 .header { text-align: center; border-bottom: 3px double #1e3a8a; padding-bottom: 14px; margin-bottom: 20px; }
                 .school-title { font-size: 26px; font-weight: 800; color: #1e3a8a; }
+                .school-address { font-size: 13px; color: #64748b; margin-top: 4px; }
                 .card-title { font-size: 18px; font-weight: bold; margin-top: 8px; color: #334155; }
                 .student-info { display: flex; justify-content: space-between; margin-bottom: 20px; font-size: 14px; line-height: 1.6; }
                 table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
@@ -177,7 +187,8 @@ object PrintManagerHelper {
         </head>
         <body>
             <div class="header">
-                <div class="school-title">OAKRIDGE INTERNATIONAL ACADEMY</div>
+                <div class="school-title">${schoolName.uppercase()}</div>
+                <div class="school-address">${schoolAddress}</div>
                 <div class="card-title">OFFICIAL ACADEMIC EVALUATION & TRANSCRIPT</div>
                 <div>${card.exam.name} &bull; Academic Session: ${card.exam.academicYear}</div>
             </div>

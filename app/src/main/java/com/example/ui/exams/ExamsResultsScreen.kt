@@ -544,9 +544,13 @@ fun ExamsResultsScreen(
     }
 
     // Active Report Card Dialog
+    val schoolProfile by viewModel.schoolProfile.collectAsState()
+
     activeReportCard?.let { reportCard ->
         StudentReportCardDialog(
             reportCard = reportCard,
+            schoolName = schoolProfile.schoolName,
+            schoolAddress = schoolProfile.campusAddress,
             onDismiss = { activeReportCard = null }
         )
     }

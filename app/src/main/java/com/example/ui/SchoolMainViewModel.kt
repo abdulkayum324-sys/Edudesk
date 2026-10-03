@@ -119,6 +119,65 @@ class SchoolMainViewModel(application: Application) : AndroidViewModel(applicati
     val allAttendance: StateFlow<List<StudentAttendance>> = repository.allAttendance
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
+    val schoolProfile: StateFlow<com.example.data.model.SchoolProfile> = repository.schoolProfile
+        .combine(kotlinx.coroutines.flow.flowOf(com.example.data.model.SchoolProfile())) { p, d -> p ?: d }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), com.example.data.model.SchoolProfile())
+
+    fun updateSchoolProfile(profile: com.example.data.model.SchoolProfile) {
+        viewModelScope.launch {
+            repository.updateSchoolProfile(profile)
+            _toastMessages.emit("School profile updated: ${profile.schoolName}")
+        }
+    }
+
+    val userAccounts: StateFlow<List<com.example.data.model.UserAccount>> = repository.allUserAccounts
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
+    private val _currentUserId = MutableStateFlow(1L)
+    val currentUser: StateFlow<com.example.data.model.UserAccount?> = combine(userAccounts, _currentUserId) { list, id ->
+        list.firstOrNull { it.id == id } ?: list.firstOrNull()
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), null)
+
+    fun switchUser(userId: Long) {
+        _currentUserId.value = userId
+        val user = userAccounts.value.firstOrNull { it.id == userId }
+        if (user != null) {
+            viewModelScope.launch {
+                _toastMessages.emit("Switched user to ${user.fullName} (${user.role})")
+            }
+        }
+    }
+
+    fun createUserAccount(fullName: String, username: String, pass: String, role: String) {
+        viewModelScope.launch {
+            val user = com.example.data.model.UserAccount(
+                fullName = fullName,
+                username = username.lowercase().trim(),
+                passwordHash = pass,
+                role = role,
+                schoolTenantId = "school-1",
+                status = "Active",
+                createdAt = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            )
+            repository.createUserAccount(user)
+            _toastMessages.emit("Created user account for $fullName ($role)")
+        }
+    }
+
+    fun updateUserAccount(user: com.example.data.model.UserAccount) {
+        viewModelScope.launch {
+            repository.updateUserAccount(user)
+            _toastMessages.emit("Updated user ${user.username}")
+        }
+    }
+
+    fun deleteUserAccount(user: com.example.data.model.UserAccount) {
+        viewModelScope.launch {
+            repository.deleteUserAccount(user)
+            _toastMessages.emit("Removed user ${user.username}")
+        }
+    }
+
     private val _selectedAttendanceDate = MutableStateFlow(
         SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
     )

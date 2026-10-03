@@ -48,10 +48,12 @@ import com.example.util.PrintManagerHelper
 @Composable
 fun StudentReportCardDialog(
     reportCard: StudentReportCard,
+    schoolName: String = "Oakridge International Academy",
+    schoolAddress: String = "Main Academic Campus, Kathmandu, Nepal",
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
-    val html = PrintManagerHelper.generateReportCardHtml(reportCard)
+    val html = PrintManagerHelper.generateReportCardHtml(reportCard, schoolName, schoolAddress)
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -87,7 +89,7 @@ fun StudentReportCardDialog(
                     Column(modifier = Modifier.padding(14.dp)) {
                         // School Header
                         Text(
-                            text = "OAKRIDGE INTERNATIONAL ACADEMY",
+                            text = schoolName.uppercase(),
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = NavyPrimary

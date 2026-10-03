@@ -439,5 +439,69 @@ object SchoolDataSeeder {
             }
             dao.insertStudentAttendanceList(attendances)
         }
+
+        // 8. Seed Default School Profile
+        dao.insertOrUpdateSchoolProfile(
+            com.example.data.model.SchoolProfile(
+                id = 1L,
+                schoolName = "Oakridge International Academy",
+                schoolMotto = "Excellence in Academic Leadership & Innovation",
+                campusAddress = "Main Academic Campus, Kathmandu, Nepal",
+                contactPhone = "+977-1-4567890",
+                contactEmail = "info@school.edu.np",
+                academicSession = "Session 2025-2026",
+                principalName = "Dr. Arthur Pendelton",
+                currencySymbol = "Rs.",
+                affiliationCode = "NEB-REG-48201",
+                websiteUrl = "www.oakridge.edu.np"
+            )
+        )
+
+        // 9. Seed Default Multi-Tenant User Credentials (RBAC)
+        if (dao.getUserAccountCount() == 0) {
+            val sampleUsers = listOf(
+                com.example.data.model.UserAccount(
+                    id = 1L,
+                    fullName = "Dr. Arthur Pendelton (Admin)",
+                    username = "admin",
+                    passwordHash = "admin123",
+                    role = "ADMIN",
+                    schoolTenantId = "school-1",
+                    status = "Active",
+                    createdAt = "2026-08-01"
+                ),
+                com.example.data.model.UserAccount(
+                    id = 2L,
+                    fullName = "Bishal Thapa (Accountant)",
+                    username = "accountant",
+                    passwordHash = "pay123",
+                    role = "ACCOUNTANT",
+                    schoolTenantId = "school-1",
+                    status = "Active",
+                    createdAt = "2026-08-10"
+                ),
+                com.example.data.model.UserAccount(
+                    id = 3L,
+                    fullName = "Dr. Sarah Jenkins (Faculty)",
+                    username = "teacher",
+                    passwordHash = "teach123",
+                    role = "TEACHER",
+                    schoolTenantId = "school-1",
+                    status = "Active",
+                    createdAt = "2026-08-15"
+                ),
+                com.example.data.model.UserAccount(
+                    id = 4L,
+                    fullName = "David Chen (Parent)",
+                    username = "parent",
+                    passwordHash = "read123",
+                    role = "PARENT",
+                    schoolTenantId = "school-1",
+                    status = "Active",
+                    createdAt = "2026-09-01"
+                )
+            )
+            dao.insertUserAccounts(sampleUsers)
+        }
     }
 }

@@ -8,10 +8,12 @@ import com.example.data.model.Exam
 import com.example.data.model.ExamResult
 import com.example.data.model.FeeRecord
 import com.example.data.model.LeaveRequest
+import com.example.data.model.SchoolProfile
 import com.example.data.model.Staff
 import com.example.data.model.Student
 import com.example.data.model.StudentAttendance
 import com.example.data.model.Subject
+import com.example.data.model.UserAccount
 
 @Database(
     entities = [
@@ -22,9 +24,11 @@ import com.example.data.model.Subject
         ExamResult::class,
         Staff::class,
         LeaveRequest::class,
-        StudentAttendance::class
+        StudentAttendance::class,
+        SchoolProfile::class,
+        UserAccount::class
     ],
-    version = 2,
+    version = 4,
     exportSchema = false
 )
 abstract class SchoolDatabase : RoomDatabase() {

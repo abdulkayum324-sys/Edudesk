@@ -44,16 +44,26 @@ import com.example.ui.theme.OnSuccessContainer
 import com.example.ui.theme.PendingContainer
 import com.example.ui.theme.SuccessContainer
 
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.IconButton
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SchoolTopBar(
     title: String,
     subtitle: String = "Oakridge International Collegiate",
+    onEditSchoolProfile: (() -> Unit)? = null,
     actions: @Composable () -> Unit = {}
 ) {
     TopAppBar(
         title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = if (onEditSchoolProfile != null) {
+                    Modifier.clickable { onEditSchoolProfile() }
+                } else Modifier
+            ) {
                 Box(
                     modifier = Modifier
                         .size(38.dp)
@@ -84,7 +94,21 @@ fun SchoolTopBar(
                 }
             }
         },
-        actions = { actions() },
+        actions = {
+            if (onEditSchoolProfile != null) {
+                IconButton(
+                    onClick = onEditSchoolProfile,
+                    modifier = Modifier.testTag("btn_edit_school_profile")
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = "Edit School Profile",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            actions()
+        },
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = MaterialTheme.colorScheme.surface
         )

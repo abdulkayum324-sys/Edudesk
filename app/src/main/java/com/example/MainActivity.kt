@@ -15,7 +15,9 @@ import androidx.compose.material.icons.filled.EventAvailable
 import androidx.compose.material.icons.filled.Grade
 import androidx.compose.material.icons.filled.People
 import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -75,12 +77,18 @@ fun SchoolAppRoot(viewModel: SchoolMainViewModel = viewModel()) {
     // Dialog & Sheet States
     var showAddStudentDialog by remember { mutableStateOf(false) }
     var studentToEdit by remember { mutableStateOf<Student?>(null) }
+    var showEditSchoolProfileDialog by remember { mutableStateOf(false) }
+    var showManageUsersDialog by remember { mutableStateOf(false) }
 
     var invoiceToCollect by remember { mutableStateOf<FeeRecord?>(null) }
     var showCreateInvoiceDialog by remember { mutableStateOf(false) }
     var studentForNewInvoice by remember { mutableStateOf<Student?>(null) }
 
     var printBillTarget by remember { mutableStateOf<Pair<Student, FeeRecord>?>(null) }
+
+    val schoolProfile by viewModel.schoolProfile.collectAsState()
+    val userAccounts by viewModel.userAccounts.collectAsState()
+    val currentUser by viewModel.currentUser.collectAsState()
 
     // Listen for toast/snackbar messages
     LaunchedEffect(Unit) {
@@ -99,7 +107,20 @@ fun SchoolAppRoot(viewModel: SchoolMainViewModel = viewModel()) {
         topBar = {
             SchoolTopBar(
                 title = currentTab.title,
-                subtitle = "Oakridge Academy \u2022 Session 2025-2026"
+                subtitle = "${schoolProfile.schoolName} \u2022 ${currentUser?.role ?: "ADMIN"}",
+                onEditSchoolProfile = { showEditSchoolProfileDialog = true },
+                actions = {
+                    IconButton(
+                        onClick = { showManageUsersDialog = true },
+                        modifier = Modifier.testTag("btn_manage_users")
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Security,
+                            contentDescription = "User Accounts & RBAC",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
             )
         },
         bottomBar = {
@@ -277,7 +298,35 @@ fun SchoolAppRoot(viewModel: SchoolMainViewModel = viewModel()) {
         PrintBillDialog(
             student = student,
             invoice = invoice,
+            schoolName = schoolProfile.schoolName,
+            schoolAddress = schoolProfile.campusAddress,
             onDismiss = { printBillTarget = null }
+        )
+    }
+
+    // 5. Edit School & Institution Profile Dialog
+    if (showEditSchoolProfileDialog) {
+        com.example.ui.components.EditSchoolProfileDialog(
+            currentProfile = schoolProfile,
+            onDismiss = { showEditSchoolProfileDialog = false },
+            onConfirm = { updated ->
+                viewModel.updateSchoolProfile(updated)
+                showEditSchoolProfileDialog = false
+            }
+        )
+    }
+
+    // 6. User Management & RBAC Credentials Dialog
+    if (showManageUsersDialog) {
+        com.example.ui.components.ManageUsersDialog(
+            users = userAccounts,
+            currentUser = currentUser,
+            onSwitchUser = { viewModel.switchUser(it) },
+            onCreateUser = { fullName, username, pass, role ->
+                viewModel.createUserAccount(fullName, username, pass, role)
+            },
+            onDeleteUser = { viewModel.deleteUserAccount(it) },
+            onDismiss = { showManageUsersDialog = false }
         )
     }
 }
